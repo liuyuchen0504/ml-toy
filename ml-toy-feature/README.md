@@ -11,7 +11,7 @@
 ### SparkUDF 注解
 1. 给你的函数添加 `@SparkUDF` 注解
     > 自动生成 `UDF` 函数，以及注册信息  
-      具体可以参考[MathOperator](https://github.com/Inforg0504/ml-toy/blob/master/ml-toy-feature/src/main/java/cn/lonnrot/feature/MathOperator.java)
+      具体可以参考[MathOperator](https://github.com/liuyuchen0504/ml-toy/blob/master/ml-toy-feature/src/main/java/cn/lonnrot/feature/MathOperator.java)
     
     ```java
     class Math {
@@ -29,7 +29,7 @@
 
 2. 算子打包，jar 放在离线 PySpark 项目中
 3. 注册 UDF 到 Spark 中
-    > 具体可以参考[算子注册](https://github.com/Inforg0504/ml-toy-offline/blob/master/tests/feature/test_operator.py)
+    > 具体可以参考[算子注册](https://github.com/liuyuchen0504/ml-toy-offline/blob/master/tests/feature/test_operator.py)
     ```python
     def register_java_udf():
         config = get_udf_conf("cn.lonnrot.feature.operate.udf.UDFConf", jar_path)
@@ -48,7 +48,7 @@
     - Date
     - List
     - Map
-3. 所以一般来说对于数值型最好设计两种，Long / Double 来分别处理整型和小数型
+3. 所以对于数值型返回值最好设计两个函数，分别返回 Long / Double 类型来分别处理整型和小数型
 4. UDF 不支持多态，因此算子最好不要用多态，而是使用不同的名称
    一般来说，如果遵守上面三条规则，则第 4 点不用注意，因为参数都是用 Object 就避免了使用多态
    SparkUDF 注解有重复函数检查
@@ -58,8 +58,16 @@
 ### SparkUDF 注解原理
 
 #### 原生构建 SparkUDF 过程
-
-1. 实现 `UDF` 接口
+1. 实现 Java 函数
+    ```java
+    class Math {
+      public static Integer add(Integer a, Integer b) {
+        return a + b;
+      }
+      
+    }
+    ```
+2. 实现 `UDF` 接口
     ```java
     package cn.lonnrot.feature.operate.udf;
    
@@ -70,7 +78,7 @@
         }
     }
     ```
-2. 手动注册到 PySpark 中
+3. 手动注册到 PySpark 中
     ```python
     # PySpark >= 2.3 为例
     spark.udf.registerJavaFunction(
@@ -80,13 +88,16 @@
     )
     ```
 
+可以对比，使用 `@SparkUDF` 注解之后，第二步则省去了，同时由于会生成注册的信息，因此在离线部分可以直接获取信息然后注册，不再需要手动添加。  
+这样就实现了开发一次 Java 算子，自动注册成 Spark 算子。  
+
 #### SparkUDF 注解做了什么
 
-使用编译器修改 Java AST 技术，在编译期间，获取 `@SparkUDF` 注解的方法，然后使用 TreeMaker 工具生成：
+使用编译期修改 Java AST 技术，在编译期间，获取 `@SparkUDF` 注解的方法，然后使用 TreeMaker 工具生成：
 1. 被注解的方法生成对应的 Spark 类（如对 add 方法，生成实现 UDF2 接口的类）
 2. 生成对应的 PySpark 注册 UDF 需要的信息（名字，UDF 类，返回类型）
     > 生成的注册信息通过注解 packageName 包下的 `UDFConf.getUDFConf()` 获取；  
       Json 格式
 
-如果大家对 SparkUDF 注解感兴趣，可以阅读位于 ml-toy-tools 中的 [SparkUDFProcessor.class](https://github.com/Inforg0504/ml-toy/blob/master/ml-toy-tools/src/main/java/cn/lonnrot/tool/annotation/SparkUDFProcessor.java)
+如果大家对 SparkUDF 注解感兴趣，可以阅读位于 ml-toy-tools 中的 [SparkUDFProcessor.class](https://github.com/liuyuchen0504/ml-toy/blob/master/ml-toy-tools/src/main/java/cn/lonnrot/tool/annotation/SparkUDFProcessor.java)
 
