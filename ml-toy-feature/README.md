@@ -11,7 +11,7 @@
 ### SparkUDF 注解
 1. 给你的函数添加 `@SparkUDF` 注解
     > 自动生成 `UDF` 函数，以及注册信息  
-      具体可以参考[MathOperator]()
+      具体可以参考[MathOperator](https://github.com/Inforg0504/ml-toy/blob/master/ml-toy-feature/src/main/java/cn/lonnrot/feature/MathOperator.java)
     
     ```java
     class Math {
@@ -29,8 +29,8 @@
 
 2. 算子打包，jar 放在离线 PySpark 项目中
 3. 注册 UDF 到 Spark 中
-    > 具体可以参考[算子注册]()
-    ```
+    > 具体可以参考[算子注册](https://github.com/Inforg0504/ml-toy-offline/blob/master/tests/feature/test_operator.py)
+    ```python
     def register_java_udf():
         config = get_udf_conf("cn.lonnrot.feature.operate.udf.UDFConf", jar_path)
         for k, f in config.items():
@@ -88,5 +88,5 @@
     > 生成的注册信息通过注解 packageName 包下的 `UDFConf.getUDFConf()` 获取；  
       Json 格式
 
-如果大家对 SparkUDF 注解感兴趣，可以阅读位于 ml-toy-tools 中的 [SparkUDFProcessor.class]()
+如果大家对 SparkUDF 注解感兴趣，可以阅读位于 ml-toy-tools 中的 [SparkUDFProcessor.class](https://github.com/Inforg0504/ml-toy/blob/master/ml-toy-tools/src/main/java/cn/lonnrot/tool/annotation/SparkUDFProcessor.java)
 
